@@ -1,0 +1,9 @@
+version: "0.2"
+ignorePaths: []
+dictionaryDefinitions: []
+dictionaries: []
+words:
+  - autoincrement
+  - cuid
+ignoreWords: []
+import: []
