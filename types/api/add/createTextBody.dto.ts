@@ -3,4 +3,5 @@ export interface CreateTextBody {
   x: number;
   y: number;
   text: string;
+  fontSize: string;
 }

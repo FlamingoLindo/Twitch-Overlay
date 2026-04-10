@@ -1,8 +1,10 @@
+import type { UpdatePayload } from '@/types/front-end/canvas.dto'
+
 export interface ItemsProps {
     selected: boolean;
     onSelect: () => void;
     onRemove: () => void;
-    onUpdate: (update: { x: number; y: number; width: number; height: number }) => void;
+    onUpdate: (update: UpdatePayload) => void;
     type: 'text' | 'file'
     coordinates: {
         x: number,
@@ -10,7 +12,8 @@ export interface ItemsProps {
     }
     text?: {
         id: string,
-        text: string
+        text: string,
+        fontSize: string,
     },
     file?: {
         id: string,

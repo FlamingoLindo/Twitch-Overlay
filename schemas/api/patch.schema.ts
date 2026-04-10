@@ -6,6 +6,7 @@ const patchTextBodySchema = z.object({
   type: z.literal("text"),
   x: z.number(),
   y: z.number(),
+  fontSize: z.string().trim().min(1, { error: "fontSize is required" }),
 }) satisfies z.ZodType<PatchTextBody>;
 
 const patchFileBodySchema = z.object({

@@ -37,8 +37,21 @@ export default function Home() {
     setItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item
-        if (item.type === 'file') return { ...item, coordinates: { x: update.x, y: update.y }, file: { ...item.file, width: update.width, height: update.height } }
-        return { ...item, coordinates: { x: update.x, y: update.y } }
+        if (item.type === 'file') {
+          if (!('width' in update) || !('height' in update)) return item
+          return {
+            ...item,
+            coordinates: { x: update.x, y: update.y },
+            file: { ...item.file, width: update.width, height: update.height },
+          }
+        }
+
+        if (!('fontSize' in update)) return item
+        return {
+          ...item,
+          coordinates: { x: update.x, y: update.y },
+          text: { ...item.text, fontSize: update.fontSize },
+        }
       }),
     )
     await updateItem(id, type, update)

@@ -10,7 +10,9 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
         height: type === 'file' && file ? file.height : 40,
     });
     const [position, setPosition] = useState({ x: coordinates.x, y: coordinates.y });
-    const fontSize = Math.min(size.width, size.height) * 0.4;
+    const fontSize = type === 'text'
+        ? (Number.parseFloat(text?.fontSize ?? '20') || 20)
+        : Math.min(size.width, size.height) * 0.4;
 
     useEffect(() => {
         setPosition({ x: coordinates.x, y: coordinates.y });
@@ -59,6 +61,11 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                 onDragStop={(_e, d) => {
                     const next = { x: position.x + d.x, y: position.y + d.y }
                     setPosition(next);
+                    if (type === 'text') {
+                        onUpdate({ x: next.x, y: next.y, fontSize: String(fontSize) });
+                        return;
+                    }
+
                     onUpdate({ x: next.x, y: next.y, width: size.width, height: size.height });
                 }}
                 onResizeStop={(_e, _dir, ref, _delta, pos) => {
@@ -66,6 +73,12 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                     const nextPosition = { x: position.x + pos.x, y: position.y + pos.y }
                     setSize(nextSize);
                     setPosition(nextPosition);
+                    if (type === 'text') {
+                        const nextFontSize = String(Math.max(8, Math.min(nextSize.width, nextSize.height) * 0.4));
+                        onUpdate({ x: nextPosition.x, y: nextPosition.y, fontSize: nextFontSize });
+                        return;
+                    }
+
                     onUpdate({ x: nextPosition.x, y: nextPosition.y, width: nextSize.width, height: nextSize.height });
                 }}
                 className={selected ? 'border border-white' : ''}

@@ -1,4 +1,5 @@
 import { mapApiItemToDraggable } from '@/lib/canvas'
+import type { CreateTextBody } from '@/types/api/add/createTextBody.dto'
 import type { ApiItem, DraggableItem, FilePayload, UpdatePayload } from '@/types/front-end/canvas.dto'
 
 export const fetchItems = async (): Promise<DraggableItem[]> => {
@@ -8,11 +9,12 @@ export const fetchItems = async (): Promise<DraggableItem[]> => {
     return data.map(mapApiItemToDraggable)
 }
 
-export const createTextItem = async (text: string): Promise<DraggableItem> => {
+export const createTextItem = async (text: string, fontSize = '100'): Promise<DraggableItem> => {
+    const body: CreateTextBody = { type: 'text', x: 60, y: 60, text, fontSize }
     const res = await fetch('/api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'text', x: 60, y: 60, text }),
+        body: JSON.stringify(body),
     })
     if (!res.ok) throw new Error('Failed to create text item')
     return mapApiItemToDraggable(await res.json())

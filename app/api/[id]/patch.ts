@@ -43,6 +43,13 @@ export async function PATCH(req: Request, { params }: Params) {
             height: Math.round(payload.height),
           },
         });
+      } else {
+        await tx.textItem.update({
+          where: { itemId: id },
+          data: {
+            fontSize: payload.fontSize,
+          },
+        });
       }
 
       return tx.item.findUnique({

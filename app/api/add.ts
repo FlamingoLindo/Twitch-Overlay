@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
     }
 
     const body = parsed.data;
-
     const item =
       body.type === "text"
         ? await prisma.item.create({
@@ -24,7 +23,7 @@ export async function POST(req: NextRequest) {
               x: body.x,
               y: body.y,
               textItem: {
-                create: { text: body.text },
+                create: { text: body.text, fontSize: body.fontSize },
               },
             },
             include: { textItem: true, fileItem: true },

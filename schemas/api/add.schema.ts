@@ -7,6 +7,7 @@ const createTextBodySchema = z.object({
   x: z.number(),
   y: z.number(),
   text: z.string().trim().min(1, { error: "text is required" }),
+  fontSize: z.string().trim().min(1, { error: "fontSize is required" }),
 }) satisfies z.ZodType<CreateTextBody>;
 
 const createFileBodySchema = z.object({

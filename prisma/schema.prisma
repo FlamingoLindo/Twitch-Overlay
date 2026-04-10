@@ -25,6 +25,7 @@ model Item {
 model TextItem {
   id   String @id @default(cuid())
   text String
+  fontSize String
 
   itemId String @unique
   item   Item   @relation(fields: [itemId], references: [id])
