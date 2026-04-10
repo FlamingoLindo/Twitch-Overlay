@@ -2,30 +2,9 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { XCircle } from "lucide-react";
+import { ItemsProps } from '@/types/front-end/items.interface';
 
-interface Props {
-    selected: boolean;
-    onSelect: () => void;
-    onRemove: () => void;
-    onUpdate: (update: { x: number; y: number; width: number; height: number }) => void;
-    type: 'text' | 'file'
-    coordinates: {
-        x: number,
-        y: number
-    }
-    text?: {
-        id: string,
-        text: string
-    },
-    file?: {
-        id: string,
-        path: string,
-        width: number,
-        height: number,
-    }
-}
-
-export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, type, coordinates, text, file }: Props) {
+export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, type, coordinates, text, file }: ItemsProps) {
     const [size, setSize] = useState({
         width: type === 'file' && file ? file.width : 120,
         height: type === 'file' && file ? file.height : 40,
@@ -51,10 +30,9 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                 left: position.x,
                 width: size.width,
                 height: size.height,
-                pointerEvents: 'none', // let Rnd handle events
+                pointerEvents: 'none'
             }}
         >
-            {/* X icon anchored to the wrapper, not inside Rnd */}
             {selected && (
                 <button
                     onMouseDown={(e) => { e.stopPropagation(); onRemove(); }}
@@ -71,7 +49,7 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                         lineHeight: 0,
                     }}
                 >
-                    <XCircle size={35} color="black" fill='white'/>
+                    <XCircle size={35} color="black" fill='white' />
                 </button>
             )}
 

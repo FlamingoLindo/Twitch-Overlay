@@ -1,6 +1,6 @@
 import * as z from "zod";
-import { CreateTextBody } from "../dto/add/createTextBody";
-import { CreateFileBody } from "../dto/add/createFileBody";
+import { CreateTextBody } from "@/types/api/add/createTextBody.dto"; 
+import { CreateFileBody } from "@/types/api/add/createFileBody.dto"; 
 
 const createTextBodySchema = z.object({
   type: z.literal("text"),

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { createItemBodySchema } from "./schemas/add_schema";
+import { createItemBodySchema } from "@/schemas/api/add.schema"; 
 import z from "zod";
 
 export async function POST(req: NextRequest) {

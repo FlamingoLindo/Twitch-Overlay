@@ -1,11 +1,7 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import UploadMenu from "./UploadMenu";
-
-type UploadBtnProps = {
-    onCreateText: (text: string) => Promise<void>
-    onCreateFile: (file: { path: string; width: number; height: number }) => Promise<void>
-}
+import { UploadBtnProps } from "@/types/front-end/uploadBtn.interface";
 
 export default function UploadBtn({ onCreateText, onCreateFile }: UploadBtnProps) {
     const [isOpen, setIsOpen] = useState(false);

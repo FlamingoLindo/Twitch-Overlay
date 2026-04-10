@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { patchItemBodySchema } from "../schemas/patch_schema";
+import { patchItemBodySchema } from "@/schemas/api/patch.schema"; 
 import z from "zod";
 
 type Params = {

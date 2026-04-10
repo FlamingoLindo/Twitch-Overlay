@@ -1,55 +1,19 @@
+import { parseImageFile } from "@/lib/fileForm";
+import { FileFormProps, FilePreview } from "@/types/front-end/fileForm.interface";
 import Image from "next/image";
 import { useState } from "react"
-
-type FilePreview = {
-    url: string
-    name: string
-    size: string
-}
-
-type FileFormProps = {
-    onSubmit: (file: { path: string; width: number; height: number }) => Promise<void>
-}
 
 export default function FileForm({ onSubmit }: FileFormProps) {
     const [preview, setPreview] = useState<FilePreview>()
     const [imageData, setImageData] = useState<{ path: string; width: number; height: number }>()
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const readFileAsDataUrl = (file: File) =>
-        new Promise<string>((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(String(reader.result || ""))
-            reader.onerror = () => reject(new Error("Failed to read file"))
-            reader.readAsDataURL(file)
-        })
-
-    const getImageSize = (dataUrl: string) =>
-        new Promise<{ width: number; height: number }>((resolve, reject) => {
-            const image = new window.Image()
-            image.onload = () => {
-                resolve({ width: image.naturalWidth, height: image.naturalHeight })
-            }
-            image.onerror = () => reject(new Error("Invalid image file"))
-            image.src = dataUrl
-        })
-
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
-        if (!file.type.startsWith("image/")) {
-            return
-        }
-
-        const dataUrl = await readFileAsDataUrl(file)
-        const dimensions = await getImageSize(dataUrl)
-
-        setPreview({
-            url: dataUrl,
-            name: file.name,
-            size: (file.size / 1024).toFixed(1) + " KB"
-        })
-        setImageData({ path: dataUrl, width: dimensions.width, height: dimensions.height })
+        const { preview, imageData } = await parseImageFile(file)
+        setPreview(preview)
+        setImageData(imageData)
     }
 
     const handleRemove = () => {

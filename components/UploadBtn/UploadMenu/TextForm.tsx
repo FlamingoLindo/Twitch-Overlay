@@ -1,8 +1,5 @@
+import { TextFormProps } from "@/types/front-end/textForm.interface"
 import { useState } from "react"
-
-type TextFormProps = {
-    onSubmit: (text: string) => Promise<void>
-}
 
 export default function TextForm({ onSubmit }: TextFormProps) {
     const [text, setText] = useState("")

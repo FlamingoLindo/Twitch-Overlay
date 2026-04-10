@@ -1,6 +1,6 @@
 import * as z from "zod";
-import { PatchTextBody } from "../dto/patch/patchTextBody";
-import { PatchFileBody } from "../dto/patch/patchFileBody";
+import { PatchTextBody } from "@/types/api/patch/patchTextBody.dto"; 
+import { PatchFileBody } from "@/types/api/patch/patchFileBody.dto"; 
 
 const patchTextBodySchema = z.object({
   type: z.literal("text"),
