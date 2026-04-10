@@ -1,4 +1,4 @@
-import { TextFormProps } from "@/types/front-end/textForm.interface"
+import { TextFormProps } from "@/components/UploadBtn/UploadMenu/textForm.props"
 import { useState } from "react"
 
 export default function TextForm({ onSubmit }: TextFormProps) {

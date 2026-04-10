@@ -1,7 +1,7 @@
 import { useState } from "react"
 import TextForm from "./TextForm"
 import FileForm from "./FileForm"
-import { UploadMenuProps } from "@/types/front-end/uploadMenu.interface"
+import { UploadMenuProps } from "@/components/UploadBtn/UploadMenu/uploadMenu.props"
 
 export default function UploadMenu({ onClose, onCreateText, onCreateFile }: UploadMenuProps) {
     const [selected, setSelected] = useState<"text" | "file">("text")

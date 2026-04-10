@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { XCircle } from "lucide-react";
-import { ItemsProps } from '@/types/front-end/items.interface';
+import { ItemsProps } from '@/components/DraggableItems/items.props';
 
 export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, type, coordinates, text, file }: ItemsProps) {
     const [size, setSize] = useState({

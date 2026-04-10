@@ -1,5 +1,5 @@
 import { parseImageFile } from "@/lib/fileForm";
-import { FileFormProps, FilePreview } from "@/types/front-end/fileForm.interface";
+import { FileFormProps, FilePreview } from "@/components/UploadBtn/UploadMenu/fileForm.props";
 import Image from "next/image";
 import { useState } from "react"
 
