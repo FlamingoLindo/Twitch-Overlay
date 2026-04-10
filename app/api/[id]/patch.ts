@@ -1,70 +1,22 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { patchItemBodySchema } from "../schemas/patch_schema";
+import z from "zod";
 
 type Params = {
   params: Promise<{ id: string }>;
 };
 
-type PatchTextBody = {
-  type: "text";
-  x: number;
-  y: number;
-};
-
-type PatchFileBody = {
-  type: "file";
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-type PatchBody = PatchTextBody | PatchFileBody;
-
-const isFiniteNumber = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value);
-
-function validatePatchBody(
-  body: unknown,
-): { ok: true; data: PatchBody } | { ok: false; error: string } {
-  if (!body || typeof body !== "object") {
-    return { ok: false, error: "Body must be an object" };
-  }
-
-  const b = body as Record<string, unknown>;
-  if (b.type !== "text" && b.type !== "file") {
-    return { ok: false, error: "Invalid type" };
-  }
-  if (!isFiniteNumber(b.x) || !isFiniteNumber(b.y)) {
-    return { ok: false, error: "x and y must be numbers" };
-  }
-  if (b.type === "file") {
-    if (!isFiniteNumber(b.width) || !isFiniteNumber(b.height)) {
-      return {
-        ok: false,
-        error: "width and height must be numbers for file updates",
-      };
-    }
-    return {
-      ok: true,
-      data: { type: "file", x: b.x, y: b.y, width: b.width, height: b.height },
-    };
-  }
-
-  return {
-    ok: true,
-    data: { type: "text", x: b.x, y: b.y },
-  };
-}
-
 export async function PATCH(req: Request, { params }: Params) {
   try {
     const { id } = await params;
-    const body = await req.json();
-    const parsed = validatePatchBody(body);
-
-    if (!parsed.ok) {
-      return NextResponse.json({ error: parsed.error }, { status: 400 });
+    const json = await req.json();
+    const parsed = patchItemBodySchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: z.treeifyError(parsed.error) },
+        { status: 400 },
+      );
     }
 
     const payload = parsed.data;
