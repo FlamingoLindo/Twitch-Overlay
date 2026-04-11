@@ -9,7 +9,7 @@ export const fetchItems = async (): Promise<DraggableItem[]> => {
     return data.map(mapApiItemToDraggable)
 }
 
-export const createTextItem = async (text: string, fontSize = '100'): Promise<DraggableItem> => {
+export const createTextItem = async (text: string, fontSize = '50'): Promise<DraggableItem> => {
     const body: CreateTextBody = { type: 'text', x: 60, y: 60, text, fontSize }
     const res = await fetch('/api', {
         method: 'POST',

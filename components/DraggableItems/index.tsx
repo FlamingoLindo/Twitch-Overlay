@@ -1,8 +1,12 @@
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
 import { XCircle } from "lucide-react";
 import { ItemsProps } from '@/components/DraggableItems/items.props';
+import { getSocket } from '@/lib/socket';
+import { clientId } from '@/lib/clientId';
+
+const socket = getSocket();
 
 export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, type, coordinates, text, file }: ItemsProps) {
     const [size, setSize] = useState({
@@ -14,6 +18,9 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
         ? (Number.parseFloat(text?.fontSize ?? '20') || 20)
         : Math.min(size.width, size.height) * 0.4;
 
+    const itemId = type === 'text' ? text?.id : file?.id;
+    const lastEmit = useRef(0);
+
     useEffect(() => {
         setPosition({ x: coordinates.x, y: coordinates.y });
     }, [coordinates.x, coordinates.y]);
@@ -23,6 +30,28 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
             setSize({ width: file.width, height: file.height });
         }
     }, [type, file?.width, file?.height]);
+
+    useEffect(() => {
+        const handleMove = (payload: {
+            clientId: string;
+            itemId: string;
+            x: number;
+            y: number;
+            width?: number;
+            height?: number;
+        }) => {
+            if (payload.clientId === clientId) return;
+            if (payload.itemId !== itemId) return;
+
+            setPosition({ x: payload.x, y: payload.y });
+            if (payload.width && payload.height) {
+                setSize({ width: payload.width, height: payload.height });
+            }
+        };
+
+        socket.on('item:move', handleMove);
+        return () => { socket.off('item:move', handleMove); };
+    }, [itemId]);
 
     return (
         <div
@@ -58,27 +87,51 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
             <Rnd
                 position={{ x: 0, y: 0 }}
                 size={{ width: size.width, height: size.height }}
+                onDrag={(_e, d) => {
+                    const now = Date.now();
+                    if (now - lastEmit.current < 30) return;
+                    lastEmit.current = now;
+
+                    socket.emit('item:move', {
+                        clientId,
+                        itemId,
+                        x: position.x + d.x,
+                        y: position.y + d.y,
+                    });
+                }}
                 onDragStop={(_e, d) => {
-                    const next = { x: position.x + d.x, y: position.y + d.y }
+                    const next = { x: position.x + d.x, y: position.y + d.y };
                     setPosition(next);
+
+                    socket.emit('item:move', { clientId, itemId, x: next.x, y: next.y });
+
                     if (type === 'text') {
                         onUpdate({ x: next.x, y: next.y, fontSize: String(fontSize) });
                         return;
                     }
-
                     onUpdate({ x: next.x, y: next.y, width: size.width, height: size.height });
                 }}
                 onResizeStop={(_e, _dir, ref, _delta, pos) => {
-                    const nextSize = { width: ref.offsetWidth, height: ref.offsetHeight }
-                    const nextPosition = { x: position.x + pos.x, y: position.y + pos.y }
+                    const nextSize = { width: ref.offsetWidth, height: ref.offsetHeight };
+                    const nextPosition = { x: position.x + pos.x, y: position.y + pos.y };
                     setSize(nextSize);
                     setPosition(nextPosition);
+
+                    // Broadcast resize too
+                    socket.emit('item:move', {
+                        clientId,
+                        itemId,
+                        x: nextPosition.x,
+                        y: nextPosition.y,
+                        width: nextSize.width,
+                        height: nextSize.height,
+                    });
+
                     if (type === 'text') {
                         const nextFontSize = String(Math.max(8, Math.min(nextSize.width, nextSize.height) * 0.4));
                         onUpdate({ x: nextPosition.x, y: nextPosition.y, fontSize: nextFontSize });
                         return;
                     }
-
                     onUpdate({ x: nextPosition.x, y: nextPosition.y, width: nextSize.width, height: nextSize.height });
                 }}
                 className={selected ? 'border border-white' : ''}
