@@ -1,8 +1,5 @@
+import { TextFormProps } from "@/components/UploadBtn/UploadMenu/textForm.props"
 import { useState } from "react"
-
-type TextFormProps = {
-    onSubmit: (text: string) => Promise<void>
-}
 
 export default function TextForm({ onSubmit }: TextFormProps) {
     const [text, setText] = useState("")
