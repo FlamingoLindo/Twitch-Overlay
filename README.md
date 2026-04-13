@@ -1,36 +1,140 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Twitch Overlay
 
-## Getting Started
+OBS browser capture overlay
 
-First, run the development server:
+<img width="2554" height="1155" alt="Image" src="https://github.com/user-attachments/assets/bff20d53-7f2d-4103-9507-9f0c9f0c6311" />
+
+It runs a Next.js app with a custom Node HTTP server (so Socket.IO can share the same port), stores overlay items in Postgres via Prisma, and syncs changes in real-time between connected clients.
+
+## What it does
+
+- Create draggable **text** items.
+- Create draggable **image** items (stored as a Data URL).
+- Move/resize items and persist their position/size.
+- Sync create/move/update/delete events live using Socket.IO.
+
+## Tech stack
+
+- Next.js (App Router) + React
+- Socket.IO (server + client)
+- Prisma + Postgres
+- Tailwind CSS
+
+## Requirements
+
+- Node.js (recommended: 20+; the Dockerfile uses Node 24)
+- A Postgres database (local or via Docker)
+
+## Environment variables
+
+Create a `.env` file in the project root.
+
+Minimum required:
+
+```bash
+DATABASE_URL="postgresql://postgres:<password>@localhost:5432/twitch_overlay?schema=public"
+```
+
+If you use `docker compose` for Postgres, you typically also set:
+
+```bash
+POSTGRES_DB=twitch_overlay
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=<password>
+
+# When running the app container inside Docker, DATABASE_URL usually points at the db service:
+# DATABASE_URL="postgresql://postgres:<password>@db:5432/twitch_overlay?schema=public"
+```
+
+## Local development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Generate Prisma client (required because it outputs to `app/generated/prisma`):
+
+```bash
+npx prisma generate
+```
+
+Apply migrations to your dev database:
+
+```bash
+npx prisma migrate dev
+```
+
+Start the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- <http://localhost:3000>
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Notes:
 
-## Learn More
+- The custom server currently listens on port `3000` (hard-coded in `server.ts`).
+- Click the "Add" button to create text or an image.
 
-To learn more about Next.js, take a look at the following resources:
+## Docker (standalone Next.js build)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This repo includes a production-style setup:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Builds Next.js with `output: "standalone"`.
+- Runs `prisma migrate deploy` on container start.
 
-## Deploy on Vercel
+Bring everything up:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+docker compose up --build -d
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open:
+
+- App: <http://localhost:3001>
+- Adminer (DB UI): <http://localhost:8081>
+
+## Use in OBS
+
+Add a **Browser Source** pointing to your running app URL:
+
+- Local dev: `http://localhost:3000`
+- Docker: `http://localhost:3001`
+
+## API
+
+The UI talks to the API routes under `app/api`.
+
+- `GET /api` returns all items.
+- `POST /api` creates an item.
+  - Text payload: `{ type: "text", x, y, text, fontSize }`
+  - File payload: `{ type: "file", x, y, path, width, height }`
+- `PATCH /api/:id` updates coordinates and either `fontSize` (text) or `width/height` (file).
+- `DELETE /api/:id` deletes the item.
+
+## Real-time events
+
+Socket.IO broadcasts updates to other connected clients:
+
+- `item:create`
+- `item:move`
+- `item:update`
+- `item:delete`
+
+## Data model
+
+Prisma models are defined in `prisma/schema.prisma`:
+
+- `Item` holds `type`, `x`, `y`
+- `TextItem` holds `text`, `fontSize`
+- `FileItem` holds `path`, `width`, `height`
+
+## Important notes
+
+- Image "uploads" are stored as Data URLs (`file.path`) and saved in Postgres. This is convenient for prototyping, but it can make the database grow quickly for large images.
+- There is no authentication/authorization; anyone with access to the app can edit the overlay.
