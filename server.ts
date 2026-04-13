@@ -15,6 +15,10 @@ app.prepare().then(() => {
     const io = new Server(httpServer);
 
     io.on("connection", (socket) => {
+        socket.on("item:create", (payload) => {
+            socket.broadcast.emit("item:create", payload)
+        })
+
         socket.on("item:move", (payload) => {
             socket.broadcast.emit("item:move", payload);
         });
@@ -26,6 +30,10 @@ app.prepare().then(() => {
         socket.on("item:unlock", (payload) => {
             socket.broadcast.emit("item:unlock", payload);
         });
+
+        socket.on("item:delete", (payload) => {
+            socket.broadcast.emit("item:delete", payload)
+        })
     });
 
     httpServer.listen(3000, () => console.log("Ready on http://localhost:3000"));

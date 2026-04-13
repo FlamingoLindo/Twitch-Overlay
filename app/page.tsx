@@ -1,9 +1,14 @@
 'use client'
 import DraggableItems from '@/components/DraggableItems';
 import UploadBtn from '@/components/UploadBtn';
+import { clientId } from '@/lib/clientId';
+import { debounce } from '@/lib/debounce';
+import { getSocket } from '@/lib/socket';
 import { createFileItem, createTextItem, deleteItem, fetchItems, updateItem } from '@/services/canvas.service';
-import { ApiItem, DraggableItem, FilePayload, UpdatePayload } from '@/types/front-end/canvas.dto';
-import { useEffect, useState } from 'react';
+import { DraggableItem, FilePayload, UpdatePayload } from '@/types/front-end/canvas.dto';
+import { useEffect, useMemo, useState } from 'react';
+
+const socket = getSocket();
 
 export default function Home() {
   const [items, setItems] = useState<DraggableItem[]>([]);
@@ -17,23 +22,38 @@ export default function Home() {
       .finally(() => setLoading(false))
   }, [])
 
-  const handleCreateText = async (text: string) => {
-    const created = await createTextItem(text)
-    setItems((prev) => [...prev, created])
-  }
+  useEffect(() => {
+    const onDelete = (payload: { clientId: string; itemId: string }) => {
+      if (payload.clientId === clientId) return
+      setItems((prev) => prev.filter((item) => item.id !== payload.itemId))
+      setSelectedId((prev) => (prev === payload.itemId ? null : prev))
+    }
 
-  const handleCreateFile = async (file: FilePayload) => {
-    const created = await createFileItem(file)
-    setItems((prev) => [...prev, created])
-  }
+    socket.on('item:delete', onDelete)
+    return () => { socket.off('item:delete', onDelete) }
+  }, [])
 
-  const handleRemove = async (id: string) => {
-    await deleteItem(id)
-    setItems((prev) => prev.filter((item) => item.id !== id))
-    setSelectedId((prev) => (prev === id ? null : prev))
-  }
+  useEffect(() => {
+    const onCreate = (payload: { clientId: string; item: DraggableItem }) => {
+      if (payload.clientId === clientId) return
+      setItems((prev) => [...prev, payload.item])
+    }
 
-  const handleUpdate = async (id: string, type: 'text' | 'file', update: UpdatePayload) => {
+    socket.on('item:create', onCreate)
+    return () => { socket.off('item:create', onCreate) }
+  }, [])
+
+  useEffect(() => {
+    const onUpdate = (payload: { clientId: string; id: string; type: 'text' | 'file'; update: UpdatePayload }) => {
+      if (payload.clientId === clientId) return
+      applyUpdate(payload.id, payload.type, payload.update)
+    }
+
+    socket.on('item:update', onUpdate)
+    return () => { socket.off('item:update', onUpdate) }
+  }, [])
+
+  const applyUpdate = (id: string, type: 'text' | 'file', update: UpdatePayload) => {
     setItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item
@@ -45,7 +65,6 @@ export default function Home() {
             file: { ...item.file, width: update.width, height: update.height },
           }
         }
-
         if (!('fontSize' in update)) return item
         return {
           ...item,
@@ -54,7 +73,42 @@ export default function Home() {
         }
       }),
     )
-    await updateItem(id, type, update)
+  }
+
+  const debouncedPersist = useMemo(
+    () => debounce((id: string, type: 'text' | 'file', update: UpdatePayload) => {
+      updateItem(id, type, update).catch((err) => console.error('Persist failed:', err))
+    }, 100),
+    [],
+  )
+
+  useEffect(() => {
+    return () => { debouncedPersist.cancel() }
+  }, [debouncedPersist])
+
+  const handleCreateText = async (text: string) => {
+    const created = await createTextItem(text)
+    setItems((prev) => [...prev, created])
+    socket.emit('item:create', { clientId, item: created })
+  }
+
+  const handleCreateFile = async (file: FilePayload) => {
+    const created = await createFileItem(file)
+    setItems((prev) => [...prev, created])
+    socket.emit('item:create', { clientId, item: created })
+  }
+
+  const handleRemove = async (id: string) => {
+    await deleteItem(id)
+    socket.emit('item:delete', { clientId, itemId: id })
+    setItems((prev) => prev.filter((item) => item.id !== id))
+    setSelectedId((prev) => (prev === id ? null : prev))
+  }
+
+  const handleUpdate = (id: string, type: 'text' | 'file', update: UpdatePayload) => {
+    applyUpdate(id, type, update)
+    socket.emit('item:update', { clientId, id, type, update })
+    debouncedPersist(id, type, update)
   }
 
   if (loading) return <div>Loading...</div>
@@ -71,15 +125,9 @@ export default function Home() {
             key={item.id}
             selected={selectedId === item.id}
             onSelect={() => setSelectedId(item.id)}
-            onUpdate={(update) => {
-              handleUpdate(item.id, item.type, update).catch((err) => {
-                console.error('Update failed:', err)
-              })
-            }}
+            onUpdate={(update) => handleUpdate(item.id, item.type, update)}
             onRemove={() => {
-              handleRemove(item.id).catch((err) => {
-                console.error('Delete failed:', err)
-              })
+              handleRemove(item.id).catch((err) => console.error('Delete failed:', err))
             }}
             {...item}
           />

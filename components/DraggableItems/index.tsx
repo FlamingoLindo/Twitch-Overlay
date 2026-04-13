@@ -66,7 +66,9 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
         >
             {selected && (
                 <button
-                    onMouseDown={(e) => { e.stopPropagation(); onRemove(); }}
+                    onMouseDown={(e) => {
+                        e.stopPropagation(); onRemove();
+                    }}
                     style={{
                         position: 'absolute',
                         top: -12,
@@ -117,7 +119,6 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                     setSize(nextSize);
                     setPosition(nextPosition);
 
-                    // Broadcast resize too
                     socket.emit('item:move', {
                         clientId,
                         itemId,
