@@ -1,9 +1,10 @@
 version: "0.2"
-ignorePaths: []
+ignorePaths: [".dockerignore","Dockerfile","compose.yml"]
 dictionaryDefinitions: []
 dictionaries: []
 words:
   - autoincrement
   - cuid
+  - treeify
 ignoreWords: []
 import: []
