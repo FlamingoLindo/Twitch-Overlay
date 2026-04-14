@@ -5,7 +5,10 @@ export interface ItemsProps {
     onSelect: () => void;
     onRemove: () => void;
     onUpdate: (update: UpdatePayload) => void;
+    onToggleHidden?: () => void;
+    interactive?: boolean;
     type: 'text' | 'file'
+    hidden: boolean;
     coordinates: {
         x: number,
         y: number

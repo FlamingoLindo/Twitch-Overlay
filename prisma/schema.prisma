@@ -20,11 +20,13 @@ model Item {
 
   textItem TextItem?
   fileItem FileItem?
+
+  hidden Boolean @default(false)
 }
 
 model TextItem {
-  id   String @id @default(cuid())
-  text String
+  id       String @id @default(cuid())
+  text     String
   fontSize String
 
   itemId String @unique

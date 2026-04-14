@@ -2,6 +2,7 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
+import { setIO } from "@/lib/io";
 
 const app = next({ dev: process.env.NODE_ENV !== "production" });
 const handle = app.getRequestHandler();
@@ -13,6 +14,7 @@ app.prepare().then(() => {
     });
 
     const io = new Server(httpServer);
+    setIO(io);
 
     io.on("connection", (socket) => {
         socket.on("item:create", (payload) => {
@@ -25,6 +27,10 @@ app.prepare().then(() => {
 
         socket.on("item:update", (payload) => {
             socket.broadcast.emit("item:update", payload);
+        });
+
+        socket.on("item:visibility", (payload) => {
+            socket.broadcast.emit("item:visibility", payload);
         });
 
         socket.on("item:lock", (payload) => {

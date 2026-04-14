@@ -1,14 +1,14 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { Rnd } from 'react-rnd';
-import { XCircle } from "lucide-react";
+import { Eye, EyeOff, XCircle } from "lucide-react";
 import { ItemsProps } from '@/components/DraggableItems/items.props';
 import { getSocket } from '@/lib/socket';
 import { clientId } from '@/lib/clientId';
 
 const socket = getSocket();
 
-export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, type, coordinates, text, file }: ItemsProps) {
+export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, onToggleHidden, interactive = true, type, hidden, coordinates, text, file }: ItemsProps) {
     const [size, setSize] = useState({
         width: type === 'file' && file ? file.width : 120,
         height: type === 'file' && file ? file.height : 40,
@@ -53,6 +53,10 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
         return () => { socket.off('item:move', handleMove); };
     }, [itemId]);
 
+    const hiddenStyle = hidden
+        ? ({ filter: 'grayscale(1)', opacity: 0.45 } as const)
+        : undefined;
+
     return (
         <div
             style={{
@@ -64,7 +68,7 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                 pointerEvents: 'none'
             }}
         >
-            {selected && (
+            {selected && interactive && (
                 <button
                     onMouseDown={(e) => {
                         e.stopPropagation(); onRemove();
@@ -86,69 +90,129 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                 </button>
             )}
 
-            <Rnd
-                position={{ x: 0, y: 0 }}
-                size={{ width: size.width, height: size.height }}
-                onDrag={(_e, d) => {
-                    const now = Date.now();
-                    if (now - lastEmit.current < 30) return;
-                    lastEmit.current = now;
+            {selected && interactive && onToggleHidden && (
+                <button
+                    onMouseDown={(e) => {
+                        e.stopPropagation();
+                        onToggleHidden();
+                    }}
+                    style={{
+                        position: 'absolute',
+                        top: -12,
+                        right: -12,
+                        zIndex: 10,
+                        pointerEvents: 'all',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        cursor: 'pointer',
+                        lineHeight: 0,
+                    }}
+                    aria-label={hidden ? 'Show in OBS' : 'Hide from OBS'}
+                >
+                    {hidden ? (
+                        <EyeOff size={35} color="black" fill='white' />
+                    ) : (
+                        <Eye size={35} color="black" fill='white' />
+                    )}
+                </button>
+            )}
 
-                    socket.emit('item:move', {
-                        clientId,
-                        itemId,
-                        x: position.x + d.x,
-                        y: position.y + d.y,
-                    });
-                }}
-                onDragStop={(_e, d) => {
-                    const next = { x: position.x + d.x, y: position.y + d.y };
-                    setPosition(next);
+            {interactive ? (
+                <Rnd
+                    position={{ x: 0, y: 0 }}
+                    size={{ width: size.width, height: size.height }}
+                    onDrag={(_e, d) => {
+                        const now = Date.now();
+                        if (now - lastEmit.current < 30) return;
+                        lastEmit.current = now;
 
-                    socket.emit('item:move', { clientId, itemId, x: next.x, y: next.y });
+                        socket.emit('item:move', {
+                            clientId,
+                            itemId,
+                            x: position.x + d.x,
+                            y: position.y + d.y,
+                        });
+                    }}
+                    onDragStop={(_e, d) => {
+                        const next = { x: position.x + d.x, y: position.y + d.y };
+                        setPosition(next);
 
-                    if (type === 'text') {
-                        onUpdate({ x: next.x, y: next.y, fontSize: String(fontSize) });
-                        return;
-                    }
-                    onUpdate({ x: next.x, y: next.y, width: size.width, height: size.height });
-                }}
-                onResizeStop={(_e, _dir, ref, _delta, pos) => {
-                    const nextSize = { width: ref.offsetWidth, height: ref.offsetHeight };
-                    const nextPosition = { x: position.x + pos.x, y: position.y + pos.y };
-                    setSize(nextSize);
-                    setPosition(nextPosition);
+                        socket.emit('item:move', { clientId, itemId, x: next.x, y: next.y });
 
-                    socket.emit('item:move', {
-                        clientId,
-                        itemId,
-                        x: nextPosition.x,
-                        y: nextPosition.y,
-                        width: nextSize.width,
-                        height: nextSize.height,
-                    });
+                        if (type === 'text') {
+                            onUpdate({ x: next.x, y: next.y, fontSize: String(fontSize) });
+                            return;
+                        }
+                        onUpdate({ x: next.x, y: next.y, width: size.width, height: size.height });
+                    }}
+                    onResizeStop={(_e, _dir, ref, _delta, pos) => {
+                        const nextSize = { width: ref.offsetWidth, height: ref.offsetHeight };
+                        const nextPosition = { x: position.x + pos.x, y: position.y + pos.y };
+                        setSize(nextSize);
+                        setPosition(nextPosition);
 
-                    if (type === 'text') {
-                        const nextFontSize = String(Math.max(8, Math.min(nextSize.width, nextSize.height) * 0.4));
-                        onUpdate({ x: nextPosition.x, y: nextPosition.y, fontSize: nextFontSize });
-                        return;
-                    }
-                    onUpdate({ x: nextPosition.x, y: nextPosition.y, width: nextSize.width, height: nextSize.height });
-                }}
-                className={selected ? 'border border-white' : ''}
-                style={{ pointerEvents: 'all' }}
-                onMouseDown={(e) => { e.stopPropagation(); onSelect(); }}
-            >
-                <div style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: `${fontSize}px`,
-                    fontWeight: 'bold',
-                    color: "white"
-                }}>
+                        socket.emit('item:move', {
+                            clientId,
+                            itemId,
+                            x: nextPosition.x,
+                            y: nextPosition.y,
+                            width: nextSize.width,
+                            height: nextSize.height,
+                        });
+
+                        if (type === 'text') {
+                            const nextFontSize = String(Math.max(8, Math.min(nextSize.width, nextSize.height) * 0.4));
+                            onUpdate({ x: nextPosition.x, y: nextPosition.y, fontSize: nextFontSize });
+                            return;
+                        }
+                        onUpdate({ x: nextPosition.x, y: nextPosition.y, width: nextSize.width, height: nextSize.height });
+                    }}
+                    className={selected ? 'border-4 border-white' : ''}
+                    style={{ pointerEvents: 'all' }}
+                    onMouseDown={(e) => { e.stopPropagation(); onSelect(); }}
+                >
+                    <div style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: `${fontSize}px`,
+                        fontWeight: 'bold',
+                        color: "white",
+                        ...hiddenStyle,
+                    }}>
+                        {type === 'text' && <span style={{ WebkitTextStroke: '1px black' }}>{text?.text}</span>}
+                        {type === 'file' && file && (
+                            <Image
+                                src={file.path}
+                                width={file.width}
+                                height={file.height}
+                                alt="draggable file"
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                draggable={false}
+                                loading="eager"
+                            />
+                        )}
+                    </div>
+                </Rnd>
+            ) : (
+                <div
+                    className={''}
+                    style={{
+                        width: size.width,
+                        height: size.height,
+                        pointerEvents: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: `${fontSize}px`,
+                        fontWeight: 'bold',
+                        color: "white",
+                        ...hiddenStyle,
+                    }}
+                >
                     {type === 'text' && <span style={{ WebkitTextStroke: '1px black' }}>{text?.text}</span>}
                     {type === 'file' && file && (
                         <Image
@@ -162,7 +226,7 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                         />
                     )}
                 </div>
-            </Rnd>
+            )}
         </div>
     );
 }

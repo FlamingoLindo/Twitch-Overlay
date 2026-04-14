@@ -5,7 +5,7 @@ import UploadBtn from '@/components/UploadBtn';
 import { clientId } from '@/lib/clientId';
 import { debounce } from '@/lib/debounce';
 import { getSocket } from '@/lib/socket';
-import { createFileItem, createTextItem, deleteItem, fetchItems, updateItem } from '@/services/canvas.service';
+import { changeVisibility, createFileItem, createTextItem, deleteItem, fetchItems, updateItem } from '@/services/canvas.service';
 import { DraggableItem, FilePayload, UpdatePayload } from '@/types/front-end/canvas.dto';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -52,6 +52,20 @@ export default function Home() {
 
     socket.on('item:update', onUpdate)
     return () => { socket.off('item:update', onUpdate) }
+  }, [])
+
+  useEffect(() => {
+    const onVisibility = (payload: { clientId: string; item: DraggableItem }) => {
+      if (payload.clientId === clientId) return
+      setItems((prev) => {
+        const existing = prev.find((i) => i.id === payload.item.id)
+        if (!existing) return [...prev, payload.item]
+        return prev.map((i) => (i.id === payload.item.id ? payload.item : i))
+      })
+    }
+
+    socket.on('item:visibility', onVisibility)
+    return () => { socket.off('item:visibility', onVisibility) }
   }, [])
 
   const applyUpdate = (id: string, type: 'text' | 'file', update: UpdatePayload) => {
@@ -112,6 +126,11 @@ export default function Home() {
     debouncedPersist(id, type, update)
   }
 
+  const handleToggleHidden = async (id: string) => {
+    const updated = await changeVisibility(id)
+    setItems((prev) => prev.map((i) => (i.id === id ? updated : i)))
+  }
+
   if (loading) return <div>Loading...</div>
 
   return (
@@ -129,6 +148,9 @@ export default function Home() {
               selected={selectedId === item.id}
               onSelect={() => setSelectedId(item.id)}
               onUpdate={(update) => handleUpdate(item.id, item.type, update)}
+              onToggleHidden={() => {
+                handleToggleHidden(item.id).catch((err) => console.error('Visibility failed:', err))
+              }}
               onRemove={() => {
                 handleRemove(item.id).catch((err) => console.error('Delete failed:', err))
               }}

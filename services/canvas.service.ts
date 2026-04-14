@@ -47,3 +47,18 @@ export const updateItem = async (
     })
     if (!res.ok) throw new Error('Failed to update item')
 }
+
+export const fetchVisibleItems = async (): Promise<DraggableItem[]> => {
+    const res = await fetch('/api?hidden=false')
+    if (!res.ok) throw new Error('Failed to fetch items')
+    const data: ApiItem[] = await res.json()
+    return data.map(mapApiItemToDraggable)
+}
+
+export const changeVisibility = async (id: string): Promise<DraggableItem> => {
+    const res = await fetch(`/api/${id}/visibility`, {
+        method: 'PATCH',
+    })
+    if (!res.ok) throw new Error('Failed to change visibility')
+    return mapApiItemToDraggable(await res.json())
+}
