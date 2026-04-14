@@ -1,6 +1,8 @@
 'use client'
 import DraggableItems from '@/components/DraggableItems';
 import Grid from '@/components/Grid';
+import Simple from '@/components/Grid/Simple';
+import TwitchPreview from '@/components/Grid/TwitchPreview';
 import UploadBtn from '@/components/UploadBtn';
 import { clientId } from '@/lib/clientId';
 import { debounce } from '@/lib/debounce';
@@ -15,6 +17,7 @@ export default function Home() {
   const [items, setItems] = useState<DraggableItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [gridOption, setGridOption] = useState<'preview' | 'simple' | null>(null);
 
   useEffect(() => {
     fetchItems()
@@ -134,14 +137,19 @@ export default function Home() {
   if (loading) return <div>Loading...</div>
 
   return (
-    <div className="flex flex-col flex-1 items-start justify-start bg-zinc-50 font-sans dark:bg-green-400">
+    <div className="flex flex-col flex-1 items-start justify-start bg-zinc-50 font-sans dark:bg-black">
       <main
-        className="flex flex-1 w-full flex-col items-start justify-start bg-white dark:bg-green-400"
+        className="flex flex-1 w-full flex-col items-start justify-start bg-white dark:bg-black"
         onMouseDown={() => setSelectedId(null)}
       >
-        <UploadBtn onCreateText={handleCreateText} onCreateFile={handleCreateFile} />
+        <div className='fixed top-4 left-4 flex gap-2 z-50'>
+          <UploadBtn onCreateText={handleCreateText} onCreateFile={handleCreateFile} />
+          <Grid onSelect={setGridOption} />
+        </div>
         <div className="relative w-480 h-270">
-          <Grid />
+          {gridOption === 'preview' && <TwitchPreview />}
+          {gridOption === 'simple' && <Simple />}
+
           {items.map((item) => (
             <DraggableItems
               key={item.id}
@@ -158,6 +166,7 @@ export default function Home() {
             />
           ))}
         </div>
+
 
       </main>
     </div>

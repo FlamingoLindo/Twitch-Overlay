@@ -168,7 +168,7 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                         }
                         onUpdate({ x: nextPosition.x, y: nextPosition.y, width: nextSize.width, height: nextSize.height });
                     }}
-                    className={selected ? 'border-4 border-white' : ''}
+                    className={selected ? 'border-4 border-white border-dashed' : ''}
                     style={{ pointerEvents: 'all' }}
                     onMouseDown={(e) => { e.stopPropagation(); onSelect(); }}
                 >

@@ -98,9 +98,9 @@ export default function Overlay() {
     if (loading) return <div>Loading...</div>
 
     return (
-        <div className="flex flex-col flex-1 items-start justify-start bg-zinc-50 font-sans dark:bg-green-400">
+        <div className="flex flex-col flex-1 items-start justify-start  font-sans ">
             <main
-                className="flex flex-1 w-full flex-col items-start justify-start bg-white dark:bg-green-400"
+                className="flex flex-1 w-full flex-col items-start justify-start  "
             >
                 <div className="relative w-480 h-270">
                     {items.map((item) => (
