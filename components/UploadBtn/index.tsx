@@ -7,7 +7,7 @@ export default function UploadBtn({ onCreateText, onCreateFile }: UploadBtnProps
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div>
+        <div className="z-50">
             <button
                 aria-label="Upload file"
                 onClick={() => setIsOpen(true)}

@@ -1,5 +1,6 @@
 'use client'
 import DraggableItems from '@/components/DraggableItems';
+import Grid from '@/components/Grid';
 import UploadBtn from '@/components/UploadBtn';
 import { clientId } from '@/lib/clientId';
 import { debounce } from '@/lib/debounce';
@@ -114,24 +115,28 @@ export default function Home() {
   if (loading) return <div>Loading...</div>
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-green-400">
+    <div className="flex flex-col flex-1 items-start justify-start bg-zinc-50 font-sans dark:bg-green-400">
       <main
-        className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-green-400 sm:items-start"
+        className="flex flex-1 w-full flex-col items-start justify-start bg-white dark:bg-green-400"
         onMouseDown={() => setSelectedId(null)}
       >
         <UploadBtn onCreateText={handleCreateText} onCreateFile={handleCreateFile} />
-        {items.map((item) => (
-          <DraggableItems
-            key={item.id}
-            selected={selectedId === item.id}
-            onSelect={() => setSelectedId(item.id)}
-            onUpdate={(update) => handleUpdate(item.id, item.type, update)}
-            onRemove={() => {
-              handleRemove(item.id).catch((err) => console.error('Delete failed:', err))
-            }}
-            {...item}
-          />
-        ))}
+        <div className="relative w-480 h-270">
+          <Grid />
+          {items.map((item) => (
+            <DraggableItems
+              key={item.id}
+              selected={selectedId === item.id}
+              onSelect={() => setSelectedId(item.id)}
+              onUpdate={(update) => handleUpdate(item.id, item.type, update)}
+              onRemove={() => {
+                handleRemove(item.id).catch((err) => console.error('Delete failed:', err))
+              }}
+              {...item}
+            />
+          ))}
+        </div>
+
       </main>
     </div>
   );

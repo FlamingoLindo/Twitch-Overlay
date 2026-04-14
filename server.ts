@@ -23,6 +23,10 @@ app.prepare().then(() => {
             socket.broadcast.emit("item:move", payload);
         });
 
+        socket.on("item:update", (payload) => {
+            socket.broadcast.emit("item:update", payload);
+        });
+
         socket.on("item:lock", (payload) => {
             socket.broadcast.emit("item:lock", payload);
         });

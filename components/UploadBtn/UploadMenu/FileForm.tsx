@@ -4,6 +4,9 @@ import Image from "next/image";
 import { useState } from "react"
 
 export default function FileForm({ onSubmit }: FileFormProps) {
+    const FIXED_W = 300;
+    const FIXED_H = 300;
+
     const [preview, setPreview] = useState<FilePreview>()
     const [imageData, setImageData] = useState<{ path: string; width: number; height: number }>()
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -25,7 +28,7 @@ export default function FileForm({ onSubmit }: FileFormProps) {
         if (!imageData || isSubmitting) return
         setIsSubmitting(true)
         try {
-            await onSubmit(imageData)
+            await onSubmit({ ...imageData, width: FIXED_W, height: FIXED_H });
             setPreview(undefined)
             setImageData(undefined)
         } finally {

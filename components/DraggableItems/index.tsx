@@ -146,8 +146,10 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: `${fontSize}px`,
+                    fontWeight: 'bold',
+                    color: "white"
                 }}>
-                    {type === 'text' && text?.text}
+                    {type === 'text' && <span style={{ WebkitTextStroke: '1px black' }}>{text?.text}</span>}
                     {type === 'file' && file && (
                         <Image
                             src={file.path}
