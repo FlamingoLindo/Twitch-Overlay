@@ -2,7 +2,7 @@
 
 OBS browser capture overlay
 
-<img width="2554" height="1155" alt="Image" src="https://github.com/user-attachments/assets/bff20d53-7f2d-4103-9507-9f0c9f0c6311" />
+<img width="2559" height="1439" alt="Image" src="https://github.com/user-attachments/assets/ec1a0b0b-4ebe-4fe5-9936-294473b8b289" />
 
 It runs a Next.js app with a custom Node HTTP server (so Socket.IO can share the same port), stores overlay items in Postgres via Prisma, and syncs changes in real-time between connected clients.
 
