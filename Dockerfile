@@ -60,6 +60,10 @@ COPY --from=builder --chown=node:node /app/node_modules ./node_modules
 
 COPY --from=builder --chown=node:node /app/prisma ./prisma
 COPY --from=builder --chown=node:node /app/prisma.config.ts ./prisma.config.ts
+
+COPY --from=builder --chown=node:node /app/lib ./lib
+COPY --from=builder --chown=node:node /app/tsconfig.json ./tsconfig.json
+
 COPY --chown=node:node entrypoint.sh ./entrypoint.sh
 
 RUN chmod +x entrypoint.sh
