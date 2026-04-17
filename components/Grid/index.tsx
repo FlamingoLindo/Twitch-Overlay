@@ -1,15 +1,20 @@
 import { Grid2X2 } from "lucide-react";
 import { useState } from "react";
 
+type GridOption = 'preview' | 'simple' | null;
+
 type GridProps = {
-    onSelect: (option: 'preview' | 'simple' | null) => void
-}
+    onSelect: (option: GridOption) => void;
+};
 
 export default function Grid({ onSelect }: GridProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [selected, setSelected] = useState<GridOption>(null);
 
     const handleSelect = (option: 'preview' | 'simple') => {
-        onSelect(option);
+        const next = selected === option ? null : option;
+        setSelected(next);
+        onSelect(next);
         setIsOpen(false);
     };
 
@@ -30,18 +35,18 @@ export default function Grid({ onSelect }: GridProps) {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full mt-1 left-0 flex flex-col bg-white/10 border border-white rounded-md overflow-hidden">
+                <div className="absolute top-full mt-1 left-0 flex flex-col bg-white/80 border border-white rounded-md overflow-hidden">
                     <button
                         onClick={() => handleSelect('preview')}
-                        className="px-4 py-2 text-sm text-white hover:bg-white/20 text-left"
+                        className="px-4 py-2 text-sm text-black hover:bg-black/20 text-left cursor-pointer border-b-2 border-white"
                     >
-                        Preview
+                        {selected === 'preview' ? 'Close Preview' : 'Preview'}
                     </button>
                     <button
                         onClick={() => handleSelect('simple')}
-                        className="px-4 py-2 text-sm text-white hover:bg-white/20 text-left"
+                        className="px-4 py-2 text-sm text-black hover:bg-black/20 text-left cursor-pointer"
                     >
-                        Simple
+                        {selected === 'simple' ? 'Close Simple' : 'Simple'}
                     </button>
                 </div>
             )}
