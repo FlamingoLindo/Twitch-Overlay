@@ -107,12 +107,14 @@ export default function Home() {
   const handleCreateText = async (text: string) => {
     const created = await createTextItem(text)
     setItems((prev) => [...prev, created])
+    setSelectedId(created.id)
     socket.emit('item:create', { clientId, item: created })
   }
 
   const handleCreateFile = async (file: FilePayload) => {
     const created = await createFileItem(file)
     setItems((prev) => [...prev, created])
+    setSelectedId(created.id)
     socket.emit('item:create', { clientId, item: created })
   }
 

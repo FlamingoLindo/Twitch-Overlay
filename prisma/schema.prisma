@@ -21,7 +21,7 @@ model Item {
   textItem TextItem?
   fileItem FileItem?
 
-  hidden Boolean @default(false)
+  hidden Boolean @default(true)
 }
 
 model TextItem {

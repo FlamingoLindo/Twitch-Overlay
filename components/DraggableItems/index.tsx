@@ -10,7 +10,7 @@ const socket = getSocket();
 
 export default function DraggableItems({ selected, onSelect, onRemove, onUpdate, onToggleHidden, interactive = true, type, hidden, coordinates, text, file }: ItemsProps) {
     const [size, setSize] = useState({
-        width: type === 'file' && file ? file.width : 120,
+        width: type === 'file' && file ? file.width : 240,
         height: type === 'file' && file ? file.height : 40,
     });
     const [position, setPosition] = useState({ x: coordinates.x, y: coordinates.y });
@@ -190,7 +190,7 @@ export default function DraggableItems({ selected, onSelect, onRemove, onUpdate,
                                 width={file.width}
                                 height={file.height}
                                 alt="draggable file"
-                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                style={{ width: '100%', height: '100%', objectFit: 'fill' }}
                                 draggable={false}
                                 loading="eager"
                             />
